@@ -44,3 +44,7 @@ jobs:
       - name: Test Position Embedding
         run: |
           python -m tests.test_position_embedding
+
+      - name: Test Attention
+        run: |
+          python -m tests.test_attention
