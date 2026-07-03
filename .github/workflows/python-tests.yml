@@ -1,9 +1,11 @@
 name: HarshaLM CI
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+      - feature/transformer
 
   pull_request:
     branches:
