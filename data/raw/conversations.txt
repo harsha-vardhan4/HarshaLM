@@ -1,0 +1,20 @@
+Hello, how are you?
+I am doing well today.
+What are you working on?
+I am building my own AI model.
+This AI will learn from my conversations.
+Artificial Intelligence is fascinating.
+I enjoy programming.
+Python is my favorite language.
+Machine learning is interesting.
+Transformers are powerful models.
+Can you help me?
+Yes, I can help you.
+Let's build an AI together.
+The weather is nice today.
+I like solving programming problems.
+React is useful for frontend development.
+Spring Boot is useful for backend development.
+Databases store information.
+Neural networks learn patterns.
+Language models predict the next token.
