@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 
 
 class SelfAttention(nn.Module):
@@ -44,13 +45,7 @@ class SelfAttention(nn.Module):
         x: torch.Tensor
     ):
 
-        """
-        Input shape:
-
-        (batch_size,
-         sequence_length,
-         embedding_dim)
-        """
+        """ Input shape: (batch_size, sequence_length, embedding_dim)"""
 
         Q = self.query(x)
 
@@ -58,4 +53,10 @@ class SelfAttention(nn.Module):
 
         V = self.value(x)
 
-        return Q, K, V
+        # Compute attention scores
+        attention_scores = Q @ K.transpose(-2, -1)
+
+        # Scale scores
+        attention_scores = attention_scores / math.sqrt(self.embedding_dim)
+
+        return attention_scores, V
