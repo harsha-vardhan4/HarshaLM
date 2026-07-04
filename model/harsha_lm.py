@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 
 from utils.config import ModelConfig
-from model.embeddings.token_embedding import TokenEmbedding
-from model.embeddings.positional_embedding import PositionalEmbedding
+
+from model.embeddings.embedding_layer import EmbeddingLayer
+from model.heads.lm_head import LMHead
 from model.transformer.transformer_stack import TransformerStack
 
 
@@ -17,12 +18,9 @@ class HarshaLM(nn.Module):
 
         self.config = config
 
-        # Token Embedding
-        self.token_embedding = TokenEmbedding(config)
-
-        # Positional Embedding
-        self.position_embedding = PositionalEmbedding(config)
-
+        #Embedding
+        self.embedding_layer = EmbeddingLayer(config)
+        
         # Transformer Stack
         self.transformer = TransformerStack(config)
 
@@ -32,11 +30,7 @@ class HarshaLM(nn.Module):
         )
 
         # Language Modeling Head
-        self.lm_head = nn.Linear(
-            config.embedding_dim,
-            config.vocab_size,
-            bias=False
-        )
+        self.lm_head = LMHead(config)
 
     def forward(
         self,
@@ -55,12 +49,8 @@ class HarshaLM(nn.Module):
                 (batch, sequence, vocab_size)
         """
 
-        token_embeddings = self.token_embedding(
+        embeddings = self.embedding_layer(
             input_ids
-        )
-
-        embeddings = self.position_embedding(
-            token_embeddings
         )
 
         hidden_states = self.transformer(
