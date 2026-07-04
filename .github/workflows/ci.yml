@@ -36,10 +36,10 @@ jobs:
         run: python -m tests.test_dataset
 
       - name: Run Token Embedding Test
-        run: python -m tests.test_embedding
+        run: python -m tests.embeddings.test_token_embedding
         
       - name: Run Position Embedding Test
-        run: python -m tests.test_position_embedding
+        run: python -m tests.embeddings.test_positional_embedding
 
       - name: Run Scaled Dot Product Attention Test
         run: python -m tests.attention.test_scaled_dot_product

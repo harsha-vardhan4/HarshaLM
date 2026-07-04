@@ -9,7 +9,6 @@ class FeedForward(nn.Module):
     Position-wise Feed Forward Network.
 
     Architecture:
-
         Linear
             ↓
         GELU
@@ -39,5 +38,14 @@ class FeedForward(nn.Module):
         self,
         x: torch.Tensor
     ) -> torch.Tensor:
+        """
+        Forward pass through the Feed Forward Network.
+
+        Input:
+            (batch, sequence, embedding_dim)
+
+        Output:
+            (batch, sequence, embedding_dim)
+        """
 
         return self.network(x)
