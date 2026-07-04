@@ -20,6 +20,7 @@ class ModelConfig:
 
     # Regularization
     dropout: float = 0.1
+    attention_dropout: float = 0.1
 
     # Training
     batch_size: int = 16
