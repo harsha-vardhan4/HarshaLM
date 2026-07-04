@@ -3,18 +3,23 @@ import torch
 from model.attention import SelfAttention
 from utils.config import ModelConfig
 
+
 config = ModelConfig()
 
-attention = SelfAttention(config.embedding_dim)
+attention = SelfAttention(config)
 
-x = torch.randn(2, 8, config.embedding_dim)
+x = torch.randn(
+    2,
+    8,
+    config.embedding_dim
+)
 
-scores, V = attention(x)
+output = attention(x)
 
-print("Attention Score Shape")
-print(scores.shape)
+print("Input Shape")
+print(x.shape)
 
 print()
 
-print("Value Shape")
-print(V.shape)
+print("Output Shape")
+print(output.shape)
