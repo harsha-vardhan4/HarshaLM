@@ -1,32 +1,39 @@
-import torch.nn as nn
+import torch
 
-from model.attention.multi_head_attention import (
-    MultiHeadAttention,
-)
 from utils.config import ModelConfig
+from model.attention import MultiHeadAttention
 
 
-def test_constructor():
+def test_multi_head_attention():
 
     config = ModelConfig()
 
     mha = MultiHeadAttention(config)
 
-    assert mha.embedding_dim == 256
-    assert mha.num_heads == 4
-    assert mha.head_dim == 64
-
-    assert isinstance(
-        mha.qkv_projection,
-        nn.Linear
+    x = torch.randn(
+        2,
+        8,
+        config.embedding_dim
     )
 
-    assert isinstance(
-        mha.output_projection,
-        nn.Linear
+    output = mha(x)
+
+    print("Input Shape:")
+    print(x.shape)
+
+    print()
+
+    print("Output Shape:")
+    print(output.shape)
+
+    assert output.shape == (
+        2,
+        8,
+        config.embedding_dim
     )
 
-    print("✓ Constructor test passed")
+    print("\n✓ MultiHeadAttention test passed")
+
 
 if __name__ == "__main__":
-    test_constructor()
+    test_multi_head_attention()

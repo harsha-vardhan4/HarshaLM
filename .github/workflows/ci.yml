@@ -37,6 +37,9 @@ jobs:
 
       - name: Run Token Embedding Test
         run: python -m tests.test_embedding
+        
+      - name: Run Position Embedding Test
+        run: python -m tests.test_position_embedding
 
       - name: Run Scaled Dot Product Attention Test
         run: python -m tests.attention.test_scaled_dot_product
