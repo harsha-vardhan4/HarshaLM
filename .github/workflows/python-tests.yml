@@ -1,28 +1,25 @@
 name: HarshaLM CI
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
-      - feature/transformer
-
+      - develop
+      - feature/**
   pull_request:
     branches:
       - main
-      - feature/transformer
+      - develop
 
 jobs:
   test:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -32,22 +29,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Main
-        run: |
-          python main.py
+      - name: Display Python Version
+        run: python --version
 
-      - name: Test Dataset
-        run: |
-          python -m tests.test_dataset
+      - name: Run Dataset Test
+        run: python -m tests.test_dataset
 
-      - name: Test Embedding
-        run: |
-          python -m tests.test_embedding
+      - name: Run Token Embedding Test
+        run: python -m tests.test_embedding
 
-      - name: Test Position Embedding
-        run: |
-          python -m tests.test_position_embedding
+      - name: Run Scaled Dot Product Attention Test
+        run: python -m tests.attention.test_scaled_dot_product
 
-      - name: Test Attention
-        run: |
-          python -m tests.test_attention
+      - name: Run Multi Head Attention Test
+        run: python -m tests.attention.test_multi_head_attention
