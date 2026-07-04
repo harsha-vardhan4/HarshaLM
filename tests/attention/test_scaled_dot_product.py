@@ -4,7 +4,6 @@ from model.attention.scaled_dot_product import (
     ScaledDotProductAttention,
 )
 
-from tests.attention.test_multi_head_attention import test_constructor
 from utils.config import ModelConfig
 
 
