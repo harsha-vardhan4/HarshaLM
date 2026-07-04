@@ -1,6 +1,6 @@
 import torch
 
-from model.embedding import TokenEmbedding
+from model.token_embedding import TokenEmbedding
 from utils.config import ModelConfig
 
 
