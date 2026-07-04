@@ -1,6 +1,6 @@
 import torch
 
-from model.attention import SelfAttention
+from model.self_attention import SelfAttention
 from utils.config import ModelConfig
 
 

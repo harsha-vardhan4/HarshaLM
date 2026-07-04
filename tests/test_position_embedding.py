@@ -1,7 +1,7 @@
 import torch
 
-from model.embedding import TokenEmbedding
-from model.position_embedding import PositionalEmbedding
+from model.token_embedding import TokenEmbedding
+from model.positional_embedding import PositionalEmbedding
 from utils.config import ModelConfig
 
 
