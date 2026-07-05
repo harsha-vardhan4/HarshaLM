@@ -90,7 +90,7 @@ class MultiHeadAttention(nn.Module):
 
         batch_size, sequence_length, _ = x.shape
 
-        x = x.view(
+        x = x.reshape(
             batch_size,
             sequence_length,
             self.num_heads,

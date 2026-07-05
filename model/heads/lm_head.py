@@ -6,16 +6,13 @@ from utils.config import ModelConfig
 
 class LMHead(nn.Module):
     """
-    Language Modeling Head.
-
-    Projects the transformer hidden states into
-    vocabulary logits.
+    Projects hidden states to vocabulary logits.
     """
 
     def __init__(self, config: ModelConfig):
         super().__init__()
 
-        self.output_projection = nn.Linear(
+        self.linear = nn.Linear(
             config.embedding_dim,
             config.vocab_size,
             bias=False
@@ -25,12 +22,5 @@ class LMHead(nn.Module):
         self,
         hidden_states: torch.Tensor
     ) -> torch.Tensor:
-        """
-        Input:
-            (batch, sequence, embedding_dim)
 
-        Output:
-            (batch, sequence, vocab_size)
-        """
-
-        return self.output_projection(hidden_states)
+        return self.linear(hidden_states)

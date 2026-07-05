@@ -32,6 +32,14 @@ class HarshaLM(nn.Module):
         # Language Modeling Head
         self.lm_head = LMHead(config)
 
+        # Tie token embedding and LM head weights
+        self.lm_head.linear.weight = (
+            self.embedding_layer
+                .token_embedding
+                .embedding
+                .weight
+        )
+
     def forward(
         self,
         input_ids: torch.Tensor,
