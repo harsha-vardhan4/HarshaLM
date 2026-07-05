@@ -74,6 +74,8 @@ class ScaledDotProductAttention(nn.Module):
                 :sequence_length,
                 :sequence_length
             ]
+            
+            attention_mask = attention_mask.unsqueeze(0).unsqueeze(0)
 
         scores = scores.masked_fill(
             attention_mask,
@@ -98,7 +100,7 @@ class ScaledDotProductAttention(nn.Module):
 
         return weights
 
-    def _compute_output(
+    def _apply_attention(
         self,
         attention_weights: torch.Tensor,
         value: torch.Tensor
@@ -114,7 +116,11 @@ class ScaledDotProductAttention(nn.Module):
         attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
 
-        assert query.dim() == 4, "Query must be 4-dimensional."
+        if query.dim() != 4:
+            raise ValueError(
+                "Query tensor must have shape "
+                "(batch, heads, sequence, head_dim)"
+            )
         assert key.dim() == 4, "Key must be 4-dimensional."
         assert value.dim() == 4, "Value must be 4-dimensional."
 
@@ -138,7 +144,7 @@ class ScaledDotProductAttention(nn.Module):
             )
         )
 
-        output = self._compute_output(
+        output = self._apply_attention(
             attention_weights,
             value
         )

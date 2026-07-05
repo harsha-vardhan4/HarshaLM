@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from torch.utils.data import Dataset
 import torch
 
@@ -11,15 +13,22 @@ class ConversationDataset(Dataset):
 
     Returns:
 
-    Input :
+    Input:
         [10, 20, 30, 40]
 
     Target:
         [20, 30, 40, 50]
+
+    Shapes:
+        Input : (context_length)
+        Target: (context_length)
     """
 
-    def __init__(self, token_ids, context_length):
-
+    def __init__(
+        self,
+        token_ids: Sequence[int],
+        context_length: int
+    ):
         self.token_ids = token_ids
         self.context_length = context_length
 
@@ -37,6 +46,12 @@ class ConversationDataset(Dataset):
         ]
 
         return (
-            torch.tensor(input_tokens, dtype=torch.long),
-            torch.tensor(target_tokens, dtype=torch.long),
+            torch.as_tensor(
+                input_tokens,
+                dtype=torch.long
+            ),
+            torch.as_tensor(
+                target_tokens,
+                dtype=torch.long
+            ),
         )
