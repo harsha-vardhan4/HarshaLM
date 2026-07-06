@@ -1,5 +1,6 @@
 import torch
 
+from model.harsha_lm import HarshaLM
 from utils.config import ModelConfig
 from training.trainer import Trainer
 from training.dataloader import create_dataloader
@@ -9,12 +10,17 @@ def test_train_epoch():
 
     config = ModelConfig()
 
-    trainer = Trainer(config)
+    model = HarshaLM(config)
+
+    trainer = Trainer(
+        model=model,
+        config=config,
+    )
 
     token_ids = torch.randint(
         0,
         config.vocab_size,
-        (5000,)
+        (5000,),
     ).tolist()
 
     dataloader = create_dataloader(
