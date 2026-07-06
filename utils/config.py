@@ -44,7 +44,7 @@ class ModelConfig:
     batch_size: int = 16
     learning_rate: float = 3e-4
     weight_decay: float = 0.01
-    num_epochs: int = 30
+    num_epochs: int = 15
     warmup_steps: int = 100
     max_grad_norm: float = 1.0
 
