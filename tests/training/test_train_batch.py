@@ -1,5 +1,6 @@
 import torch
 
+from model.harsha_lm import HarshaLM
 from utils.config import ModelConfig
 from training.trainer import Trainer
 
@@ -8,7 +9,12 @@ def test_train_batch():
 
     config = ModelConfig()
 
-    trainer = Trainer(config)
+    model = HarshaLM(config)
+
+    trainer = Trainer(
+        model=model,
+        config=config,
+    )
 
     input_ids = torch.randint(
         0,
