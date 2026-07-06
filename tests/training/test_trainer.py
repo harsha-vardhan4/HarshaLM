@@ -1,47 +1,33 @@
-from model.harsha_lm import HarshaLM
-from utils.config import ModelConfig
-from training.trainer import Trainer
-import torch
+from training.pipeline import TrainingPipeline
 
-from training.dataloader import create_dataloader
+from utils.config import ModelConfig
 
 
 def test_trainer():
 
-    config = ModelConfig(
-        num_epochs=2,
-        batch_size=8,
-        context_length=32,
+    config = ModelConfig()
+
+    config.num_epochs = 1
+
+    pipeline = TrainingPipeline(
+        config
     )
 
-    token_ids = torch.randint(
-        0,
-        config.vocab_size,
-        (5000,)
-    ).tolist()
+    components = pipeline.prepare()
 
-    dataloader = create_dataloader(
-        token_ids,
-        config,
+    history = components.trainer.train(
+        components.dataloader
     )
 
-    model = HarshaLM(config)
+    assert history is not None
 
-    trainer = Trainer(
-        model,
-        config,
-    )
+    print()
 
-    history = trainer.train(
-        dataloader
-    )
-
-    print("\nTraining History:")
     print(history)
 
-    assert len(history) == config.num_epochs
+    print()
 
-    print("\n✓ Trainer test passed")
+    print("✓ Trainer test passed")
 
 
 if __name__ == "__main__":

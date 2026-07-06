@@ -4,22 +4,15 @@ on:
   push:
     branches:
       - main
-      - master
-      - feature/*
+      - feature/**
   pull_request:
     branches:
       - main
-      - master
-      - feature/*
 
 jobs:
   test:
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        python-version: ["3.12"]
 
     steps:
 
@@ -29,74 +22,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-
-
-      - name: Upgrade pip
-        run: |
-          python -m pip install --upgrade pip
+          python-version: "3.12"
 
       - name: Install dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Show Python Version
         run: python --version
 
-      - name: Show Torch Version
-        run: python -c "import torch; print(torch.__version__)"
-
-      - name: Run Embedding Tests
+      - name: Run All Tests
         run: |
-          python -m tests.embeddings.test_token_embedding
-          python -m tests.embeddings.test_positional_embedding
-          python -m tests.embeddings.test_embedding_layer
-
-      - name: Run Attention Tests
-        run: |
-          python -m tests.attention.test_scaled_dot_product
-          python -m tests.attention.test_multi_head_attention
-      
-      - name: Run Transformer Tests
-        run: |
-          python -m tests.transformer.test_feed_forward
-          python -m tests.transformer.test_transformer_block
-          python -m tests.transformer.test_transformer_stack
-      
-      - name: Run Head Tests
-        run: |
-          python -m tests.heads.test_lm_head
-      
-      - name: Run Model Tests
-        run: |
-          python -m tests.model.test_harsha_lm
-      
-      - name: Run Tokenizer Tests
-        run: |
-          python -m tests.tokenizer.test_tokenizer
-      
-      - name: Run Training Tests
-        run: |
-          python -m tests.training.test_loss
-          python -m tests.training.test_optimizer
-          python -m tests.training.test_scheduler
-          python -m tests.training.test_checkpoint
-          python -m tests.training.test_dataset
-          python -m tests.training.test_dataloader
-          python -m tests.training.test_train_epoch
-          python -m tests.training.test_train_batch
-          python -m tests.training.test_trainer
-      
-      # - name: Run Inference Tests
-      #   run: |
-      #     python -m tests.inference.test_sampling
-      #     python -m tests.inference.test_model_loader
-      #     python -m tests.inference.test_generator
-      #     python -m tests.inference.test_logits
+          python run_tests.py
