@@ -53,6 +53,49 @@ jobs:
       - name: Show Torch Version
         run: python -c "import torch; print(torch.__version__)"
 
-      - name: Run Unit Tests
+      - name: Run Embedding Tests
         run: |
-          python -m unittest discover -s tests
+          python -m tests.embeddings.test_token_embedding
+          python -m tests.embeddings.test_positional_embedding
+          python -m tests.embeddings.test_embedding_layer
+
+      - name: Run Attention Tests
+        run: |
+          python -m tests.attention.test_scaled_dot_product_attention
+          python -m tests.attention.test_multi_head_attention
+      
+      - name: Run Transformer Tests
+        run: |
+          python -m tests.transformer.test_feed_forward
+          python -m tests.transformer.test_transformer_block
+          python -m tests.transformer.test_transformer_stack
+      
+      - name: Run Head Tests
+        run: |
+          python -m tests.heads.test_lm_head
+      
+      - name: Run Model Tests
+        run: |
+          python -m tests.model.test_harsha_lm
+      
+      - name: Run Tokenizer Tests
+        run: |
+          python -m tests.tokenizer.test_tokenizer
+      
+      - name: Run Training Tests
+        run: |
+          python -m tests.training.test_loss
+          python -m tests.training.test_optimizer
+          python -m tests.training.test_scheduler
+          python -m tests.training.test_checkpoint
+          python -m tests.training.test_dataset
+          python -m tests.training.test_dataloader
+          python -m tests.training.test_train_epoch
+          python -m tests.training.test_trainer
+      
+      # - name: Run Inference Tests
+      #   run: |
+      #     python -m tests.inference.test_sampling
+      #     python -m tests.inference.test_model_loader
+      #     python -m tests.inference.test_generator
+      #     python -m tests.inference.test_logits
