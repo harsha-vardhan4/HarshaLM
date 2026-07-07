@@ -1,6 +1,7 @@
 # MyOwnAI
 Building a GPT-style language model completely from scratch using PyTorch.
 
+i am currently building aiml language model in my local system
 
 we are using hugging face tokenizer later we need to make our own tokenizer
 

@@ -45,6 +45,8 @@ TESTS = [
 
     "tests.model.test_harsha_lm",
 
+    "tests.model.test_weight_tying",
+
     #
     # Transformer
     #
@@ -96,6 +98,12 @@ TESTS = [
     "tests.inference.test_top_k",
 
     "tests.inference.test_top_p",
+
+    #
+    # test
+    #
+
+    "tests.utils.test_parameter_summary",
 
 
     #
