@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from utils.config import ModelConfig
+import torch
 
 from model.harsha_lm import HarshaLM
-
+from training.checkpoint import CheckpointManager
 from training.optimizer import create_optimizer
 from training.scheduler import create_scheduler
-from training.checkpoint import CheckpointManager
+from utils.config import ModelConfig
 
 
 def test_checkpoint():
@@ -17,44 +17,68 @@ def test_checkpoint():
 
     optimizer = create_optimizer(
         model,
-        config
+        config,
     )
 
     scheduler = create_scheduler(
         optimizer,
+        config,
+    )
+
+    manager = CheckpointManager(
         config
     )
 
-    manager = CheckpointManager(config)
+    #
+    # Save first checkpoint
+    #
 
     manager.save(
         model=model,
         optimizer=optimizer,
         scheduler=scheduler,
         epoch=1,
-        step=25,
-        loss=6.42
+        step=10,
+        train_loss=5.2,
+        validation_loss=4.8,
     )
 
-    checkpoint_path = (
+    checkpoint_file = (
         Path(config.checkpoint_dir)
         / "checkpoint_epoch_1.pt"
     )
 
+    best_file = (
+        Path(config.checkpoint_dir)
+        / "best_model.pt"
+    )
+
+    assert checkpoint_file.exists()
+
+    assert best_file.exists()
+
+    #
+    # Load checkpoint
+    #
+
     checkpoint = manager.load(
-        checkpoint_path,
+        checkpoint_file,
         model,
         optimizer,
-        scheduler
+        scheduler,
     )
+
+    assert checkpoint["epoch"] == 1
+
+    assert checkpoint["step"] == 10
+
+    assert checkpoint["train_loss"] == 5.2
+
+    assert checkpoint["validation_loss"] == 4.8
 
     print()
 
-    print("Epoch:", checkpoint["epoch"])
-    print("Step:", checkpoint["step"])
-    print("Loss:", checkpoint["loss"])
-
-    print("\n✓ Checkpoint test passed")
+    print("✓ Checkpoint test passed")
 
 
 if __name__ == "__main__":

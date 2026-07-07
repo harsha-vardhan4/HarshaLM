@@ -120,36 +120,116 @@ class Trainer:
                 )
 
         return total_loss / len(dataloader)
+    
+    @torch.no_grad()
+    def _validate_epoch(
+        self,
+        dataloader: DataLoader,
+        epoch: int,
+    ) -> float:
+        """
+        Evaluates the model on the validation dataset.
+        """
+
+        self.model.eval()
+
+        total_loss = 0.0
+
+        if len(dataloader) == 0:
+            raise ValueError(
+                "Validation dataloader is empty."
+            )
+
+
+        for input_ids, target_ids in dataloader:
+
+            input_ids = input_ids.to(
+                self.device
+            )
+
+            target_ids = target_ids.to(
+                self.device
+            )
+
+
+            logits = self.model(
+                input_ids
+            )
+
+
+            loss = self.loss_fn(
+                logits,
+                target_ids,
+            )
+
+
+            total_loss += loss.item()
+
+
+        average_loss = (
+            total_loss /
+            len(dataloader)
+        )
+
+
+        print(
+            f"Validation Loss: "
+            f"{average_loss:.4f}"
+        )
+
+
+        return average_loss
 
     def train(
         self,
-        dataloader: DataLoader,
-    ) -> list[float]:
+        train_dataloader: DataLoader,
+        validation_dataloader: DataLoader,
+    ) -> dict[str, list[float]]:
         """
         Runs the complete training process.
         """
 
-        history = []
+        history = {
+            "train_loss": [],
+            "validation_loss": [],
+        }
 
         for epoch in range(
             1,
             self.config.num_epochs + 1,
         ):
 
-            average_loss = self._train_epoch(
-                dataloader,
+            train_loss = self._train_epoch(
+                train_dataloader,
                 epoch,
             )
 
-            history.append(
-                average_loss
+            validation_loss = self._validate_epoch(
+                validation_dataloader,
+                epoch,
+            )
+
+            history["train_loss"].append(
+                train_loss
+            )
+
+            history["validation_loss"].append(
+                validation_loss
             )
 
             print(
                 f"\nEpoch "
-                f"[{epoch}/{self.config.num_epochs}] "
-                f"Average Loss: "
-                f"{average_loss:.4f}\n"
+                f"[{epoch}/{self.config.num_epochs}]"
+            )
+
+            print(
+                f"Train Loss      : "
+                f"{train_loss:.4f}"
+            )
+
+            print(
+                f"Validation Loss : "
+                f"{validation_loss:.4f}\n"
             )
 
             self.checkpoint_manager.save(
@@ -157,8 +237,9 @@ class Trainer:
                 optimizer=self.optimizer,
                 scheduler=self.scheduler,
                 epoch=epoch,
-                step=len(dataloader),
-                loss=average_loss,
+                step=len(train_dataloader),
+                train_loss=train_loss,
+                validation_loss=validation_loss
             )
 
         return history

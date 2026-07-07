@@ -14,7 +14,8 @@ def main():
     components = pipeline.prepare()
 
     history = components.trainer.train(
-        components.dataloader
+        components.train_dataloader,
+        components.validation_dataloader,
     )
 
     print()
