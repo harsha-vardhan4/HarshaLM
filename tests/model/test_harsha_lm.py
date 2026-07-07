@@ -10,6 +10,22 @@ def test_harsha_lm():
 
     model = HarshaLM(config)
 
+    model.summary()
+
+    assert model.verify_weight_tying()
+
+    print(
+        f"Parameters: {model.num_parameters():,}"
+    )
+
+    print(
+        f"Trainable: {model.trainable_parameters():,}"
+    )
+
+    print(
+        f"Size: {model.model_size_mb():.2f} MB"
+    )
+
     input_ids = torch.randint(
         0,
         config.vocab_size,

@@ -1,26 +1,33 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
 *.pyo
 
 # Virtual Environment
 venv/
+.venv/
 
-# Model Checkpoints
+# PyTorch
 checkpoints/
+*.pt
 
 # Logs
-logs/
+*.log
 
-# Exports
-exports/
-
-# VS Code
+# IDE
 .vscode/
+.idea/
 
-# Jupyter
-.ipynb_checkpoints/
-
-# Operating System
+# OS
 .DS_Store
 Thumbs.db
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
