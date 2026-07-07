@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import torch
 
 from model.harsha_lm import HarshaLM
@@ -19,20 +21,51 @@ class ModelLoader:
 
     def load(
         self,
-        checkpoint_path: str,
+        checkpoint_path: str | None = None,
     ) -> HarshaLM:
+        """
+        Loads a trained model.
+
+        If checkpoint_path is None,
+        the best checkpoint is loaded.
+        """
 
         tokenizer = create_tokenizer()
 
-        # Ensure the config matches training.
-        self.config.vocab_size = tokenizer.vocab_size
+        #
+        # Ensure configuration matches training.
+        #
+
+        self.config.vocab_size = (
+            tokenizer.vocab_size
+        )
+
+        #
+        # Default to best checkpoint
+        #
+
+        if checkpoint_path is None:
+
+            checkpoint_path = (
+                Path(
+                    self.config.checkpoint_dir
+                )
+                /
+                self.config.best_checkpoint_name
+            )
+
+        #
+        # Build model
+        #
 
         model = HarshaLM(
             self.config
         )
 
-        checkpoint_manager = CheckpointManager(
-            self.config
+        checkpoint_manager = (
+            CheckpointManager(
+                self.config
+            )
         )
 
         checkpoint_manager.load(
@@ -41,7 +74,9 @@ class ModelLoader:
         )
 
         model.to(
-            torch.device(self.config.device)
+            torch.device(
+                self.config.device
+            )
         )
 
         model.eval()

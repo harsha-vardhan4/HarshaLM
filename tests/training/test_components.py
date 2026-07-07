@@ -32,13 +32,15 @@ def test_components():
     components = TrainingComponents(
         model=model,
         trainer=trainer,
-        dataloader=dataloader,
+        train_dataloader=dataloader,
+        validation_dataloader=dataloader,
         tokenizer=None,
     )
 
     assert components.model is model
     assert components.trainer is trainer
-    assert components.dataloader is dataloader
+    assert components.train_dataloader is dataloader
+    assert components.validation_dataloader is dataloader
 
     print()
 

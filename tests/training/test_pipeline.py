@@ -15,7 +15,8 @@ def test_pipeline():
 
     assert components.model is not None
     assert components.trainer is not None
-    assert components.dataloader is not None
+    assert components.train_dataloader is not None
+    assert components.validation_dataloader is not None
     assert components.tokenizer is not None
 
     print()
@@ -29,7 +30,8 @@ def test_pipeline():
     print()
 
     print(
-        f"Batches: {len(components.dataloader)}"
+        f"train_Batches: {len(components.train_dataloader)}"
+        f"Validation Batches: {len(components.validation_dataloader)}"
     )
 
     print()

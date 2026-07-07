@@ -16,7 +16,8 @@ def test_trainer():
     components = pipeline.prepare()
 
     history = components.trainer.train(
-        components.dataloader
+        components.train_dataloader,
+        components.validation_dataloader,
     )
 
     assert history is not None

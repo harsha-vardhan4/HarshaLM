@@ -8,7 +8,7 @@ from training.components import (
 )
 
 from training.dataloader import (
-    create_dataloader,
+    create_train_validation_dataloaders,
 )
 
 from training.trainer import Trainer
@@ -68,9 +68,15 @@ class TrainingPipeline:
         # DataLoader
         #
 
-        dataloader = create_dataloader(
-            token_ids,
-            self.config,
+        #
+        # Train & Validation DataLoaders
+        #
+
+        train_dataloader, validation_dataloader = (
+            create_train_validation_dataloaders(
+                token_ids,
+                self.config,
+            )
         )
 
         #
@@ -97,6 +103,7 @@ class TrainingPipeline:
         return TrainingComponents(
             model=model,
             trainer=trainer,
-            dataloader=dataloader,
+            train_dataloader=train_dataloader,
+            validation_dataloader=validation_dataloader,
             tokenizer=tokenizer,
         )

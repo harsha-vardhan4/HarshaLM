@@ -11,7 +11,10 @@ class CheckpointManager:
     Handles saving and loading HarshaLM checkpoints.
     """
 
-    def __init__(self, config: ModelConfig):
+    def __init__(
+        self,
+        config: ModelConfig,
+    ):
 
         self.config = config
 
@@ -21,20 +24,63 @@ class CheckpointManager:
 
         self.checkpoint_dir.mkdir(
             parents=True,
-            exist_ok=True
+            exist_ok=True,
         )
 
-    def save(
+        self.best_validation_loss = (
+            self._load_best_validation_loss()
+        )
+
+    def _load_best_validation_loss(
+        self,
+    ) -> float:
+        """
+        Loads the validation loss of the current
+        best model if it exists.
+        """
+
+        best_checkpoint = (
+            self.checkpoint_dir /
+            self.config.best_checkpoint_name
+        )
+
+        if not best_checkpoint.exists():
+
+            return float("inf")
+
+        checkpoint = torch.load(
+            best_checkpoint,
+            map_location=self.config.device,
+        )
+
+        validation_loss = checkpoint.get(
+            "validation_loss"
+        )
+
+        if validation_loss is None:
+
+            return float("inf")
+
+        print(
+            "✓ Loaded best validation loss:",
+            validation_loss,
+        )
+
+        return validation_loss
+
+
+    def _create_checkpoint(
         self,
         model,
         optimizer,
         scheduler,
         epoch: int,
-        step: int | None = None,
-        loss: float | None = None,
+        step: int | None,
+        train_loss: float | None,
+        validation_loss: float | None,
     ):
 
-        checkpoint = {
+        return {
 
             "model_state_dict":
                 model.state_dict(),
@@ -51,8 +97,11 @@ class CheckpointManager:
             "step":
                 step,
 
-            "loss":
-                loss,
+            "train_loss":
+                train_loss,
+
+            "validation_loss":
+                validation_loss,
 
             "config":
                 asdict(self.config),
@@ -61,29 +110,89 @@ class CheckpointManager:
                 self.config.model_name,
 
             "model_version":
-                self.config.model_version
+                self.config.model_version,
         }
+
+
+    def save(
+        self,
+        model,
+        optimizer,
+        scheduler,
+        epoch: int,
+        step: int | None = None,
+        train_loss: float | None = None,
+        validation_loss: float | None = None,
+    ):
+
+        checkpoint = self._create_checkpoint(
+            model,
+            optimizer,
+            scheduler,
+            epoch,
+            step,
+            train_loss,
+            validation_loss,
+        )
+
+
+        # Save normal epoch checkpoint
 
         filename = (
             self.checkpoint_dir /
             f"checkpoint_epoch_{epoch}.pt"
         )
 
+
         torch.save(
             checkpoint,
             filename
         )
 
+
         print(
             f"✓ Saved checkpoint: {filename}"
         )
+
+
+        # Save best model
+
+        if (
+            validation_loss is not None
+            and
+            validation_loss <
+            self.best_validation_loss
+        ):
+
+            self.best_validation_loss = (
+                validation_loss
+            )
+
+
+            best_filename = (
+                self.checkpoint_dir /
+                self.config.best_checkpoint_name
+            )
+
+
+            torch.save(
+                checkpoint,
+                best_filename
+            )
+
+
+            print(
+                f"✓ Saved best model: "
+                f"{best_filename}"
+            )
+
 
     def load(
         self,
         filename,
         model,
         optimizer=None,
-        scheduler=None
+        scheduler=None,
     ):
 
         checkpoint = torch.load(
@@ -91,25 +200,35 @@ class CheckpointManager:
             map_location=self.config.device
         )
 
+
         model.load_state_dict(
-            checkpoint["model_state_dict"]
+            checkpoint[
+                "model_state_dict"
+            ]
         )
+
 
         if optimizer is not None:
 
             optimizer.load_state_dict(
-                checkpoint["optimizer_state_dict"]
+                checkpoint[
+                    "optimizer_state_dict"
+                ]
             )
+
 
         if scheduler is not None:
 
             scheduler.load_state_dict(
-                checkpoint["scheduler_state_dict"]
+                checkpoint[
+                    "scheduler_state_dict"
+                ]
             )
+
 
         print(
             f"✓ Loaded checkpoint: {filename}"
         )
 
+
         return checkpoint
-    

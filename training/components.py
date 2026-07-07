@@ -16,6 +16,8 @@ class TrainingComponents:
 
     trainer: Trainer
 
-    dataloader: DataLoader
+    train_dataloader: DataLoader
+
+    validation_dataloader: DataLoader
 
     tokenizer: object
