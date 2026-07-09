@@ -12,9 +12,20 @@ class GPTTokenizer:
             "gpt2"
         )
 
-        # GPT-2 has no pad token by default
+        #
+        # Use GPT-2 end-of-text token for padding.
+        #
+
         self.tokenizer.pad_token = (
             self.tokenizer.eos_token
+        )
+
+        #
+        # Avoid warnings for long datasets.
+        #
+
+        self.tokenizer.model_max_length = (
+            1_000_000
         )
 
     @property
@@ -22,14 +33,55 @@ class GPTTokenizer:
 
         return len(self.tokenizer)
 
+    @property
+    def pad_token(self):
+
+        return self.tokenizer.pad_token
+
+    @property
+    def pad_token_id(self):
+
+        return self.tokenizer.pad_token_id
+
+    @property
+    def bos_token(self):
+
+        return self.tokenizer.bos_token
+
+    @property
+    def bos_token_id(self):
+
+        return self.tokenizer.bos_token_id
+
+    @property
+    def eos_token(self):
+
+        return self.tokenizer.eos_token
+
+    @property
+    def eos_token_id(self):
+
+        return self.tokenizer.eos_token_id
+
+    @property
+    def unk_token(self):
+
+        return self.tokenizer.unk_token
+
+    @property
+    def unk_token_id(self):
+
+        return self.tokenizer.unk_token_id
+
     def encode(
         self,
         text: str,
+        add_special_tokens: bool = False,
     ) -> list[int]:
 
         return self.tokenizer.encode(
             text,
-            add_special_tokens=False,
+            add_special_tokens=add_special_tokens,
         )
 
     def decode(
@@ -59,8 +111,18 @@ class GPTTokenizer:
 
         obj = cls()
 
-        obj.tokenizer = GPT2TokenizerFast.from_pretrained(
-            directory
+        obj.tokenizer = (
+            GPT2TokenizerFast.from_pretrained(
+                directory
+            )
+        )
+
+        obj.tokenizer.pad_token = (
+            obj.tokenizer.eos_token
+        )
+
+        obj.tokenizer.model_max_length = (
+            1_000_000
         )
 
         return obj

@@ -1,0 +1,12 @@
+[
+    {
+        "epoch": 1,
+        "train_loss": 2.1,
+        "validation_loss": 2.0,
+        "train_perplexity": 8.16,
+        "validation_perplexity": 7.39,
+        "learning_rate": 0.0003,
+        "is_best_model": false,
+        "validation_improved": false
+    }
+]

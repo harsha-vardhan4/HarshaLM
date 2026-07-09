@@ -3,7 +3,7 @@ from tokenizer.tokenizer import create_tokenizer
 
 class DataPreparation:
     """
-    Converts raw text into token IDs.
+    Converts conversations into token IDs.
     """
 
     def __init__(self):
@@ -12,22 +12,59 @@ class DataPreparation:
 
     def prepare(
         self,
-        text: str,
+        conversations: list[str],
     ) -> list[int]:
         """
-        Converts raw text into token IDs.
+        Converts conversations into one stream of token IDs.
         """
 
-        token_ids = self.tokenizer.encode(
-            text
+        all_token_ids = []
+
+        total_characters = 0
+        total_tokens = 0
+
+        for conversation in conversations:
+
+            token_ids = (
+                [self.tokenizer.bos_token_id]
+                +
+                self.tokenizer.encode(
+                    conversation,
+                    add_special_tokens=False,
+                )
+                +
+                [self.tokenizer.eos_token_id]
+            )
+
+            all_token_ids.extend(
+                token_ids
+            )
+
+            total_characters += len(
+                conversation
+            )
+
+            total_tokens += len(
+                token_ids
+            )
+
+        print(
+            f"Conversations : {len(conversations):,}"
         )
 
         print(
-            f"Characters : {len(text):,}"
+            f"Characters    : {total_characters:,}"
         )
 
         print(
-            f"Tokens      : {len(token_ids):,}"
+            f"Tokens        : {total_tokens:,}"
         )
 
-        return token_ids
+        if conversations:
+
+            print(
+                f"Avg Tokens    : "
+                f"{total_tokens / len(conversations):.2f}"
+            )
+
+        return all_token_ids
