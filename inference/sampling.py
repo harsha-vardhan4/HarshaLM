@@ -1,5 +1,7 @@
 import torch
 
+from inference.constraints import GenerationConstraints
+
 
 class TokenSampler:
     """
@@ -222,7 +224,18 @@ class TokenSampler:
         top_p: float | None = None,
         generated_tokens: torch.Tensor | None = None,
         repetition_penalty: float = 1.0,
+        no_repeat_ngram_size: int | None = None,
     ) -> torch.Tensor:
+        
+        if (
+            generated_tokens is not None
+            and no_repeat_ngram_size is not None
+        ):
+            logits = GenerationConstraints.no_repeat_ngram(
+                logits=logits,
+                generated_tokens=generated_tokens,
+                ngram_size=no_repeat_ngram_size,
+            )
 
 
         if temperature <= 0:

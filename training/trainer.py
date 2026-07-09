@@ -1,13 +1,19 @@
 import torch
 from torch.utils.data import DataLoader
+from pathlib import Path
+import sys
 
+from training.logger import TrainingLogger
 from model.harsha_lm import HarshaLM
 from training.loss import LanguageModelLoss
 from training.optimizer import create_optimizer
 from training.scheduler import create_scheduler
 from training.checkpoint import CheckpointManager
+from training.metrics import TrainingMetrics
+from training.early_stopping import EarlyStopping
 
 from utils.config import ModelConfig
+
 
 
 class Trainer:
@@ -15,6 +21,7 @@ class Trainer:
     Handles the complete training pipeline for HarshaLM.
     """
 
+    
     def __init__(
         self,
         model: HarshaLM,
@@ -45,6 +52,23 @@ class Trainer:
 
         self.checkpoint_manager = (
             CheckpointManager(config)
+        )
+
+        self.logger = (
+            TrainingLogger(
+                Path(
+                    config.log_dir
+                )
+                /
+                config.training_log_name
+            )
+        )
+
+        self.early_stopping = (
+            EarlyStopping(
+                patience=config.early_stopping_patience,
+                min_delta=config.early_stopping_min_delta,
+            )
         )
 
     def _train_batch(
@@ -179,6 +203,47 @@ class Trainer:
 
 
         return average_loss
+    
+    def resume(
+        self,
+        checkpoint_path: str,
+    ) -> int:
+        """
+        Resumes training from a checkpoint.
+
+        Returns
+        -------
+        int
+            Next epoch to train.
+        """
+
+        checkpoint = (
+            self.checkpoint_manager.load(
+                checkpoint_path,
+                self.model,
+                self.optimizer,
+                self.scheduler,
+            )
+        )
+
+        start_epoch = (
+            checkpoint["epoch"] + 1
+        )
+
+        print()
+
+        print("=" * 60)
+
+        print(
+            f"Resuming training from epoch "
+            f"{start_epoch}"
+        )
+
+        print("=" * 60)
+
+        print()
+
+        return start_epoch
 
     def train(
         self,
@@ -192,10 +257,24 @@ class Trainer:
         history = {
             "train_loss": [],
             "validation_loss": [],
+            "train_perplexity": [],
+            "validation_perplexity": [],
         }
 
+        if "--resume" in sys.argv:
+
+            self.config.resume_training = True
+
+        start_epoch = 1
+
+        if self.config.resume_training:
+
+            start_epoch = self.resume(
+                self.config.resume_checkpoint
+            )
+
         for epoch in range(
-            1,
+            start_epoch,
             self.config.num_epochs + 1,
         ):
 
@@ -209,6 +288,18 @@ class Trainer:
                 epoch,
             )
 
+            train_perplexity = (
+                TrainingMetrics.perplexity(
+                    train_loss
+                )
+            )
+
+            validation_perplexity = (
+                TrainingMetrics.perplexity(
+                    validation_loss
+                )
+            )
+
             history["train_loss"].append(
                 train_loss
             )
@@ -217,29 +308,118 @@ class Trainer:
                 validation_loss
             )
 
-            print(
-                f"\nEpoch "
-                f"[{epoch}/{self.config.num_epochs}]"
+            history["train_perplexity"].append(
+                train_perplexity
             )
 
+            history["validation_perplexity"].append(
+                validation_perplexity
+            )
+
+            print()
+
+            print("=" * 60)
+
             print(
-                f"Train Loss      : "
+                f"Epoch "
+                f"{epoch}/{self.config.num_epochs}"
+            )
+
+            print("-" * 60)
+
+            print(
+                f"Train Loss            : "
                 f"{train_loss:.4f}"
             )
 
             print(
-                f"Validation Loss : "
-                f"{validation_loss:.4f}\n"
+                f"Validation Loss       : "
+                f"{validation_loss:.4f}"
             )
 
-            self.checkpoint_manager.save(
-                model=self.model,
-                optimizer=self.optimizer,
-                scheduler=self.scheduler,
+            print(
+                f"Train Perplexity      : "
+                f"{train_perplexity:.4f}"
+            )
+
+            print(
+                f"Validation Perplexity : "
+                f"{validation_perplexity:.4f}"
+            )
+
+            print(
+                f"Learning Rate         : "
+                f"{self.optimizer.param_groups[0]['lr']:.8f}"
+            )
+
+            print("=" * 60)
+
+            print()
+
+            stop_training = (
+                self.early_stopping.step(
+                    validation_loss
+                )
+            )
+
+            is_best_model = (
+                self.checkpoint_manager.save(
+                    model=self.model,
+                    optimizer=self.optimizer,
+                    scheduler=self.scheduler,
+                    epoch=epoch,
+                    step=len(train_dataloader),
+                    train_loss=train_loss,
+                    validation_loss=validation_loss,
+                )
+            )
+
+            if self.early_stopping.improved:
+
+                print(
+                    "✓ Validation loss improved."
+                )
+
+            else:
+
+                print(
+                    f"No improvement "
+                    f"({self.early_stopping.counter}/"
+                    f"{self.early_stopping.patience})"
+                )
+
+            if stop_training:
+
+                print()
+
+                print("=" * 60)
+
+                print(
+                    "Early stopping triggered."
+                )
+
+                print(
+                    f"Best Validation Loss : "
+                    f"{self.early_stopping.best_loss:.4f}"
+                )
+
+                print("=" * 60)
+
+                print()
+
+                break
+
+            self.logger.log(
                 epoch=epoch,
-                step=len(train_dataloader),
                 train_loss=train_loss,
-                validation_loss=validation_loss
+                validation_loss=validation_loss,
+                train_perplexity=train_perplexity,
+                validation_perplexity=validation_perplexity,
+                learning_rate=self.optimizer.param_groups[0]["lr"],
+                is_best_model=is_best_model,
+                validation_improved=(
+                    self.early_stopping.improved
+                ),
             )
 
         return history

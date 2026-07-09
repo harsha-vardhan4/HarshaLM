@@ -30,16 +30,6 @@ class ModelLoader:
         the best checkpoint is loaded.
         """
 
-        tokenizer = create_tokenizer()
-
-        #
-        # Ensure configuration matches training.
-        #
-
-        self.config.vocab_size = (
-            tokenizer.vocab_size
-        )
-
         #
         # Default to best checkpoint
         #
@@ -55,30 +45,67 @@ class ModelLoader:
             )
 
         #
+        # Read checkpoint metadata
+        #
+
+        checkpoint = torch.load(
+            checkpoint_path,
+            map_location=self.config.device,
+        )
+
+        #
+        # Restore training configuration
+        #
+
+        saved_config = ModelConfig(
+            **checkpoint["config"]
+        )
+
+        #
+        # Keep current runtime device
+        #
+
+        saved_config.device = (
+            self.config.device
+        )
+
+        #
+        # Tokenizer
+        #
+
+        tokenizer = create_tokenizer()
+
+        saved_config.vocab_size = (
+            tokenizer.vocab_size
+        )
+
+        #
         # Build model
         #
 
         model = HarshaLM(
-            self.config
+            saved_config
         )
 
-        checkpoint_manager = (
-            CheckpointManager(
-                self.config
-            )
-        )
+        #
+        # Load weights
+        #
 
-        checkpoint_manager.load(
-            checkpoint_path,
-            model,
+        model.load_state_dict(
+            checkpoint["model_state_dict"]
         )
 
         model.to(
             torch.device(
-                self.config.device
+                saved_config.device
             )
         )
 
         model.eval()
+
+        print(
+            f"✓ Loaded checkpoint: "
+            f"{checkpoint_path}"
+        )
 
         return model

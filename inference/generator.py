@@ -176,8 +176,6 @@ class TextGenerator:
                 :
             ]
 
-
-
             if no_repeat_ngram_size is not None:
 
                 next_token_logits = (
@@ -188,8 +186,6 @@ class TextGenerator:
                     )
                 )
 
-
-
             next_token = TokenSampler.sample(
                 logits=next_token_logits,
                 temperature=temperature,
@@ -197,8 +193,8 @@ class TextGenerator:
                 top_p=top_p,
                 generated_tokens=input_ids,
                 repetition_penalty=repetition_penalty,
+                no_repeat_ngram_size=no_repeat_ngram_size,
             )
-
 
             input_ids = torch.cat(
                 (
@@ -208,7 +204,17 @@ class TextGenerator:
                 dim=1,
             )
 
+            #
+            # Stop if EOS is generated.
+            #
 
+            if (
+                next_token.item()
+                ==
+                self.tokenizer.eos_token_id
+            ):
+
+                break
 
         generated_ids = (
             input_ids

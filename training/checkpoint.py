@@ -154,6 +154,7 @@ class CheckpointManager:
             f"✓ Saved checkpoint: {filename}"
         )
 
+        best_model_saved = False
 
         # Save best model
 
@@ -186,6 +187,10 @@ class CheckpointManager:
                 f"{best_filename}"
             )
 
+            best_model_saved = True
+
+        return best_model_saved
+
 
     def load(
         self,
@@ -199,7 +204,6 @@ class CheckpointManager:
             filename,
             map_location=self.config.device
         )
-
 
         model.load_state_dict(
             checkpoint[

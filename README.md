@@ -35,3 +35,8 @@ Later, when you're ready for full training:
 from utils.profiles import production_config
 
 config = production_config()
+
+
+----This is actually another issue we'll want to address.
+
+Most language models report perplexity only after the loss drops below about 20, and in practice, good models often have losses around 1–5. To avoid numerical overflow and unreadable output, it's common to cap or safely compute perplexity when the loss is very high.

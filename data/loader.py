@@ -3,40 +3,72 @@ from pathlib import Path
 
 class TextDatasetLoader:
     """
-    Loads one or more text files for training.
+    Loads one or more text files as individual conversations.
     """
+
+    def _split_conversations(
+        self,
+        text: str,
+    ) -> list[str]:
+        """
+        Splits text into conversations.
+
+        Conversations are separated by
+        one or more blank lines.
+        """
+
+        conversations = []
+
+        for conversation in text.split("\n\n"):
+
+            conversation = conversation.strip()
+
+            if conversation:
+
+                conversations.append(
+                    conversation
+                )
+
+        return conversations
+
 
     def load_file(
         self,
         filepath: str,
-    ) -> str:
+    ) -> list[str]:
 
         path = Path(filepath)
 
         if not path.exists():
             raise FileNotFoundError(filepath)
 
-        return path.read_text(
-            encoding="utf-8"
+        text = path.read_text(
+            encoding="utf-8",
         )
+
+        return self._split_conversations(
+            text
+        )
+
 
     def load_directory(
         self,
         directory: str,
-    ) -> str:
+    ) -> list[str]:
 
         directory = Path(directory)
 
         if not directory.exists():
             raise FileNotFoundError(directory)
 
-        texts = []
+        conversations = []
 
         files = sorted(
             directory.glob("*.txt")
         )
 
         if not files:
+
             raise ValueError(
                 "No .txt files found."
             )
@@ -47,18 +79,23 @@ class TextDatasetLoader:
                 f"Loading {file.name}"
             )
 
-            texts.append(
-                file.read_text(
-                    encoding="utf-8"
+            text = file.read_text(
+                encoding="utf-8",
+            )
+
+            conversations.extend(
+                self._split_conversations(
+                    text
                 )
             )
 
-        return "\n".join(texts)
+        return conversations
+
 
     def load(
         self,
         path: str,
-    ) -> str:
+    ) -> list[str]:
 
         path = Path(path)
 

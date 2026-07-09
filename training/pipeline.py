@@ -40,7 +40,7 @@ class TrainingPipeline:
 
         loader = TextDatasetLoader()
 
-        text = loader.load(
+        conversations = loader.load(
             dataset_path
         )
 
@@ -51,7 +51,7 @@ class TrainingPipeline:
         preparation = DataPreparation()
 
         token_ids = preparation.prepare(
-            text
+            conversations
         )
 
         tokenizer = preparation.tokenizer
