@@ -1,7 +1,8 @@
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 
-from training.dataset import ConversationDataset
+from data.training_sample import TrainingSample
+from training.conversation_dataset import ConversationDataset
 from utils.config import ModelConfig
 
 
@@ -17,6 +18,7 @@ def create_dataloader(
     dataset = ConversationDataset(
         token_ids=token_ids,
         context_length=config.context_length,
+        stride=config.stride,
     )
 
     return DataLoader(
@@ -30,7 +32,7 @@ def create_dataloader(
 
 
 def create_train_validation_dataloaders(
-    token_ids,
+    training_samples: list[TrainingSample],
     config: ModelConfig,
 ):
     """
@@ -39,11 +41,21 @@ def create_train_validation_dataloaders(
     """
 
     dataset = ConversationDataset(
-        token_ids=token_ids,
+        samples=training_samples,
         context_length=config.context_length,
+        stride=config.stride,
     )
 
     dataset_size = len(dataset)
+
+    print()
+    print("=" * 60)
+    print("Dataset Statistics")
+    print("=" * 60)
+    print(f"Total windows      : {dataset_size}")
+    # print(f"Training windows   : {train_size}")
+    # print(f"Validation windows : {validation_size}")
+    print()
 
     validation_size = int(
         dataset_size * config.validation_split
@@ -60,7 +72,7 @@ def create_train_validation_dataloaders(
         train_dataset,
         batch_size=config.batch_size,
         shuffle=True,
-        drop_last=True,
+        drop_last=False,
         num_workers=config.num_workers,
         pin_memory=config.pin_memory,
     )

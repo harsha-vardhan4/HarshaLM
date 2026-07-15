@@ -75,6 +75,7 @@ class Trainer:
         self,
         input_ids: torch.Tensor,
         target_ids: torch.Tensor,
+        loss_mask : torch.Tensor,
     ) -> float:
         """
         Performs one optimization step.
@@ -84,16 +85,31 @@ class Trainer:
 
         input_ids = input_ids.to(self.device)
         target_ids = target_ids.to(self.device)
+        
+        loss_mask = loss_mask.to(self.device)
 
         self.optimizer.zero_grad()
 
         logits = self.model(
             input_ids
         )
+        # print("Logits shape:", logits.shape)
+        # print("Logits min :", logits.min().item())
+        # print("Logits max :", logits.max().item())
+        # print("Logits mean:", logits.mean().item())
+        # print("Logits std :", logits.std().item())
+        # print("Input:", input_ids.shape)
+        # print("Targets:", target_ids.shape)
+        # print("Mask:", loss_mask.shape)
+
+        # print("Target min:", target_ids.min().item())
+        # print("Target max:", target_ids.max().item())
+        # print("Ignore count:", (target_ids == -100).sum().item())
 
         loss = self.loss_fn(
             logits,
-            target_ids
+            target_ids,
+            loss_mask,
         )
 
         loss.backward()
@@ -120,14 +136,12 @@ class Trainer:
 
         total_loss = 0.0
 
-        for batch_index, (input_ids, target_ids) in enumerate(
-            dataloader,
-            start=1,
-        ):
+        for batch_index, (input_ids, target_ids, loss_mask,) in enumerate(dataloader,start=1,):
 
             loss = self._train_batch(
                 input_ids,
                 target_ids,
+                loss_mask,
             )
 
             total_loss += loss
@@ -165,13 +179,21 @@ class Trainer:
             )
 
 
-        for input_ids, target_ids in dataloader:
+        for (
+            input_ids,
+            target_ids,
+            loss_mask,
+        ) in dataloader:
 
             input_ids = input_ids.to(
                 self.device
             )
 
             target_ids = target_ids.to(
+                self.device
+            )
+
+            loss_mask = loss_mask.to(
                 self.device
             )
 
@@ -184,6 +206,7 @@ class Trainer:
             loss = self.loss_fn(
                 logits,
                 target_ids,
+                loss_mask,
             )
 
 

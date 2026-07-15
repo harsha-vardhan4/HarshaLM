@@ -48,10 +48,22 @@ class CheckpointManager:
 
             return float("inf")
 
-        checkpoint = torch.load(
-            best_checkpoint,
-            map_location=self.config.device,
-        )
+        try:
+
+            checkpoint = torch.load(
+                best_checkpoint,
+                map_location=self.config.device,
+                weights_only=False,
+            )
+
+        except Exception:
+
+            print(
+                "Old checkpoint detected. "
+                "Ignoring previous best model."
+            )
+
+            return float("inf")
 
         validation_loss = checkpoint.get(
             "validation_loss"
@@ -104,7 +116,7 @@ class CheckpointManager:
                 validation_loss,
 
             "config":
-                asdict(self.config),
+                self.config.to_dict(),
 
             "model_name":
                 self.config.model_name,
@@ -202,7 +214,8 @@ class CheckpointManager:
 
         checkpoint = torch.load(
             filename,
-            map_location=self.config.device
+            map_location=self.config.device,
+            weights_only=False,
         )
 
         model.load_state_dict(

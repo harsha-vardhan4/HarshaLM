@@ -4,6 +4,7 @@ import torch
 
 from model.harsha_lm import HarshaLM
 from tokenizer.tokenizer import create_tokenizer
+from training import checkpoint
 from training.checkpoint import CheckpointManager
 from utils.config import ModelConfig
 
@@ -51,14 +52,18 @@ class ModelLoader:
         checkpoint = torch.load(
             checkpoint_path,
             map_location=self.config.device,
+            weights_only=False,
         )
+
+        print(type(checkpoint["config"]))
+        print(checkpoint["config"])
 
         #
         # Restore training configuration
         #
 
-        saved_config = ModelConfig(
-            **checkpoint["config"]
+        saved_config = ModelConfig.from_dict(
+            checkpoint["config"]
         )
 
         #
