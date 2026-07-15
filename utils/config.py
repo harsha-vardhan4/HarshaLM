@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+from dataclasses import asdict
+
+from data.parsers.parser_factory import DatasetType
 
 
 @dataclass
@@ -14,7 +17,7 @@ class ModelConfig:
     # Input
     # ----------------------------
 
-    context_length: int = 128 # for now we will leave it with 16 later we will increase it to 128 or 256
+    context_length: int = 32 # for now we will leave it with 16 later we will increase it to 128 or 256
 
     # ----------------------------
     # Embeddings
@@ -41,12 +44,14 @@ class ModelConfig:
     # Training
     # ----------------------------
 
-    batch_size: int = 16
+    batch_size: int = 16 # from 16 to 64
     learning_rate: float = 3e-4
     weight_decay: float = 0.01
     num_epochs: int = 30
-    warmup_steps: int = 100
+    # warmup_steps: int = 100
     max_grad_norm: float = 1.0
+
+    stride: int = 8
 
     # ----------------------------
     # Logging
@@ -65,7 +70,7 @@ class ModelConfig:
     # Dataset
     # ----------------------------
 
-    dataset_path: str = "data/processed/train.txt"
+    dataset_path: str = "datasets"
 
     # ----------------------------
     # Miscellaneous
@@ -78,7 +83,7 @@ class ModelConfig:
     model_version: str = "0.1.0"
     optimizer: str = "adamw"
 
-    max_training_steps: int = 10000
+    # max_training_steps: int = 10000
 
     num_workers: int = 0
     pin_memory: bool = False
@@ -95,7 +100,7 @@ class ModelConfig:
 
     early_stopping_patience: int = 4
 
-    early_stopping_min_delta: float = 0.5
+    early_stopping_min_delta: float = 0.001
 
     #
     # Logging
@@ -109,3 +114,34 @@ class ModelConfig:
     resume_training: bool = False
 
     resume_checkpoint: str = "checkpoints/best_model.pt"
+
+    dataset_type: DatasetType = (
+        DatasetType.PLAIN_TEXT
+    )
+
+    def to_dict(self) -> dict:
+        config = asdict(self)
+
+        #
+        # Convert enums to strings
+        #
+
+        config["dataset_type"] = (
+            self.dataset_type.value
+        )
+
+        return config
+    
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict,
+    ):
+
+        data = data.copy()
+
+        data["dataset_type"] = DatasetType(
+            data["dataset_type"]
+        )
+
+        return cls(**data)

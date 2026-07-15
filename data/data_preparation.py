@@ -1,4 +1,7 @@
+from data.formatted_conversation import FormattedConversation
+from data.training_sample import TrainingSample
 from tokenizer.tokenizer import create_tokenizer
+from data.loss_mask_builder import LossMaskBuilder
 
 
 class DataPreparation:
@@ -9,43 +12,48 @@ class DataPreparation:
     def __init__(self):
 
         self.tokenizer = create_tokenizer()
+        self.loss_mask_builder = LossMaskBuilder()
 
     def prepare(
         self,
-        conversations: list[str],
-    ) -> list[int]:
+        conversations: list[FormattedConversation],
+    ) -> list[TrainingSample]:
         """
         Converts conversations into one stream of token IDs.
         """
 
-        all_token_ids = []
+        training_samples = []
 
         total_characters = 0
         total_tokens = 0
 
         for conversation in conversations:
 
-            token_ids = (
-                [self.tokenizer.bos_token_id]
-                +
-                self.tokenizer.encode(
-                    conversation,
-                    add_special_tokens=False,
+            input_ids, labels, loss_mask = (
+                self.loss_mask_builder.build(
+                    conversation
                 )
-                +
-                [self.tokenizer.eos_token_id]
             )
 
-            all_token_ids.extend(
-                token_ids
+            labels = input_ids[1:] + [-100]
+
+            loss_mask = [1] * len(input_ids)
+
+            training_samples.append(
+                TrainingSample(
+                    input_ids=input_ids,
+                    labels=labels,
+                    loss_mask=loss_mask,
+                    conversation_length=len(input_ids),
+                )
             )
 
             total_characters += len(
-                conversation
+                conversation.text
             )
 
             total_tokens += len(
-                token_ids
+                input_ids
             )
 
         print(
@@ -67,4 +75,4 @@ class DataPreparation:
                 f"{total_tokens / len(conversations):.2f}"
             )
 
-        return all_token_ids
+        return training_samples

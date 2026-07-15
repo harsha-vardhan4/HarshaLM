@@ -1,10 +1,14 @@
-from data.loader import TextDatasetLoader
 from data.data_preparation import DataPreparation
 
 from model.harsha_lm import HarshaLM
 
 from training.components import (
     TrainingComponents,
+)
+
+from data.dataset_builder import DatasetBuilder
+from data.parsers.parser_factory import (
+    DatasetType,
 )
 
 from training.dataloader import (
@@ -38,10 +42,11 @@ class TrainingPipeline:
         # Load dataset
         #
 
-        loader = TextDatasetLoader()
+        builder = DatasetBuilder()
 
-        conversations = loader.load(
-            dataset_path
+        training_corpus = builder.build(
+            path=self.config.dataset_path,
+            dataset_type=self.config.dataset_type,
         )
 
         #
@@ -50,8 +55,8 @@ class TrainingPipeline:
 
         preparation = DataPreparation()
 
-        token_ids = preparation.prepare(
-            conversations
+        training_samples = preparation.prepare(
+            training_corpus
         )
 
         tokenizer = preparation.tokenizer
@@ -74,10 +79,40 @@ class TrainingPipeline:
 
         train_dataloader, validation_dataloader = (
             create_train_validation_dataloaders(
-                token_ids,
+                training_samples,
                 self.config,
             )
         )
+
+        #
+        # Compute training schedule
+        #
+
+        steps_per_epoch = len(train_dataloader)
+
+        self.config.max_training_steps = (
+            steps_per_epoch * self.config.num_epochs
+        )
+
+        #
+        # Warm up for 5% of training
+        #
+
+        self.config.warmup_steps = max(
+            5,
+            int(self.config.max_training_steps * 0.05),
+        )
+
+        print()
+
+        print("=" * 60)
+        print("Training Schedule")
+        print("=" * 60)
+        print(f"Steps / Epoch : {steps_per_epoch}")
+        print(f"Total Steps   : {self.config.max_training_steps}")
+        print(f"Warmup Steps  : {self.config.warmup_steps}")
+        print("=" * 60)
+        print()
 
         #
         # Model

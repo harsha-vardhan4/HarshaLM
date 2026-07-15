@@ -1,10 +1,11 @@
-from training.dataset import ConversationDataset
+from training.conversation_dataset import ConversationDataset
 
 tokens = list(range(20))
 
 dataset = ConversationDataset(
     tokens,
-    context_length=5
+    context_length=5,
+    stride=1
 )
 
 print("Dataset Size:", len(dataset))
