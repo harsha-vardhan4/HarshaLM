@@ -1,13 +1,19 @@
 import torch
 
-from inference.sampling import TokenSampler
-from inference.constraints import GenerationConstraints
+from inference.sampling import (
+    TokenSampler,
+)
+
+from inference.constraints import (
+    GenerationConstraints,
+)
 
 
 class TextGenerator:
     """
     Generates text using a trained HarshaLM model.
     """
+
 
     def __init__(
         self,
@@ -19,6 +25,7 @@ class TextGenerator:
         self.model = model
         self.tokenizer = tokenizer
         self.config = config
+
 
 
     @torch.no_grad()
@@ -34,6 +41,7 @@ class TextGenerator:
         """
         Predicts the next token for a given prompt.
         """
+
 
         input_ids = self.tokenizer.encode(
             prompt
@@ -93,6 +101,7 @@ class TextGenerator:
         Prints the top predicted tokens.
         """
 
+
         values, indices = torch.topk(
             logits,
             k=top_n,
@@ -115,12 +124,12 @@ class TextGenerator:
             score = values[0, rank].item()
 
 
-            print(
-                f"{rank+1:2d}. "
-                f"id={token_id:<6} "
-                f"logit={score:8.4f} "
-                f"text={repr(token)}"
-            )
+            # print(
+            #     f"{rank+1:2d}. "
+            #     f"id={token_id:<6} "
+            #     f"logit={score:8.4f} "
+            #     f"text={repr(token)}"
+            # )
 
 
 
@@ -134,6 +143,7 @@ class TextGenerator:
         top_p: float | None = None,
         repetition_penalty: float = 1.0,
         no_repeat_ngram_size: int | None = None,
+        return_full_text: bool = True,
     ) -> str:
         """
         Generates text autoregressively.
@@ -152,9 +162,46 @@ class TextGenerator:
         ).unsqueeze(0)
 
 
+        #
+        # Save original prompt length.
+        #
+
+        prompt_length = input_ids.size(1)
+
+
+
+        #
+        # Tokens that stop generation.
+        #
+
+        stop_tokens = {
+            self.tokenizer.eos_token_id,
+        }
+
+
+        if hasattr(
+            self.tokenizer,
+            "user_token_id",
+        ):
+
+            stop_tokens.add(
+                self.tokenizer.user_token_id
+            )
+
+
+        if hasattr(
+            self.tokenizer,
+            "system_token_id",
+        ):
+
+            stop_tokens.add(
+                self.tokenizer.system_token_id
+            )
+
+
+        generated_tokens = 0
 
         for _ in range(max_new_tokens):
-
 
             if input_ids.size(1) > self.config.context_length:
 
@@ -162,6 +209,8 @@ class TextGenerator:
                     :,
                     -self.config.context_length:
                 ]
+
+                prompt_length = input_ids.size(1)
 
 
 
@@ -196,6 +245,8 @@ class TextGenerator:
                 no_repeat_ngram_size=no_repeat_ngram_size,
             )
 
+
+
             input_ids = torch.cat(
                 (
                     input_ids,
@@ -203,17 +254,18 @@ class TextGenerator:
                 ),
                 dim=1,
             )
+            generated_tokens += 1
+
+
 
             #
-            # Stop if EOS is generated.
+            # Stop generation.
             #
 
             if (
-                next_token.item()
-                ==
-                self.tokenizer.eos_token_id
+                next_token.item() in stop_tokens
+                and generated_tokens > 5
             ):
-
                 break
 
         generated_ids = (
@@ -222,10 +274,72 @@ class TextGenerator:
             .tolist()
         )
 
+        #
+        # Return complete prompt + response.
+        #
 
-        generated_text = self.tokenizer.decode(
-            generated_ids
+        if return_full_text:
+
+            return self.tokenizer.decode(
+                generated_ids
+            )
+
+        #
+        # Calculate completion safely.
+        #
+
+        effective_prompt_length = min(
+            prompt_length,
+            len(generated_ids),
         )
 
 
-        return generated_text
+        completion_ids = generated_ids[
+            effective_prompt_length:
+        ]
+
+
+
+        #
+        # Debug
+        #
+
+        # print()
+
+        # print("=" * 60)
+        # print("Generation Debug")
+        # print("-" * 60)
+
+        # print(
+        #     f"Prompt Tokens   : {prompt_length}"
+        # )
+
+        # print(
+        #     f"Generated Tokens: {len(generated_ids)}"
+        # )
+
+        # print(
+        #     f"Completion IDs  : {completion_ids}"
+        # )
+
+
+        # decoded = self.tokenizer.decode(
+        #     completion_ids
+        # )
+
+
+        # print(
+        #     f"Decoded         : {repr(decoded)}"
+        # )
+
+        # print("=" * 60)
+
+        # print()
+
+
+
+        # return decoded.strip()
+
+        return self.tokenizer.decode(
+            completion_ids
+        ).strip()

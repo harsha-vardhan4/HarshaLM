@@ -1,4 +1,4 @@
-from data.loader import TextDatasetLoader
+from data.loaders.loader import TextDatasetLoader
 
 
 def test_loader():

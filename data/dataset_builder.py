@@ -1,72 +1,133 @@
-from data.loader import TextDatasetLoader
-from data.conversation_formatter import (
-    ConversationFormatter,
+from pathlib import Path
+
+from data.converters.converter_factory import (
+    ConverterFactory,
 )
+
 from data.parsers.parser_factory import (
-    ParserFactory,
     DatasetType,
+)
+
+from data.training_corpus import (
+    TrainingCorpus,
 )
 
 
 class DatasetBuilder:
     """
-    Builds the final training corpus.
+    Builds the final training corpus by discovering
+    dataset folders.
+
+    Example:
+
+    datasets/
+        plain_text/
+        daily_dialog/
+        sharegpt/
+        alpaca/
     """
-
-    def __init__(self):
-
-        self.loader = TextDatasetLoader()
-
-        self.formatter = (
-            ConversationFormatter()
-        )
 
     def build(
         self,
         path: str,
-        dataset_type: DatasetType,
-    ) -> str:
-        """
-        Loads a dataset and converts it into
-        HarshaLM's canonical training format.
-        """
+    ) -> TrainingCorpus:
 
-        raw_conversations = (
-            self.loader.load(path)
+        root = Path(path)
+
+        if not root.exists():
+
+            raise FileNotFoundError(root)
+
+        if not root.is_dir():
+
+            raise ValueError(
+                "Dataset path must be a directory."
+            )
+
+        corpus = TrainingCorpus(
+            dataset_name=root.name
         )
 
-        parser = ParserFactory.create(
-            dataset_type
+        #
+        # Every subdirectory represents one dataset.
+        #
+
+        dataset_directories = sorted(
+
+            directory
+
+            for directory in root.iterdir()
+
+            if directory.is_dir()
+
         )
 
-        formatted_conversations = []
+        for directory in dataset_directories:
 
-        for raw_conversation in raw_conversations:
+            try:
 
-            parsed = parser.parse(raw_conversation)
+                dataset_type = DatasetType(
+                    directory.name.lower()
+                )
 
-            if isinstance(parsed, str):
+            except ValueError:
 
-                formatted = parsed
+                print(
+                    f"Skipping unknown dataset: "
+                    f"{directory.name}"
+                )
 
-            else:
+                continue
 
-                formatted = self.formatter.format(parsed)
+            print(
+                f"Loading dataset: "
+                f"{directory.name}"
+            )
 
-            formatted_conversations.append(formatted)
+            try:
+                converter = ConverterFactory.create(
+                    dataset_type
+                )
+            except ValueError:
+                print(
+                    f"Skipping unsupported dataset: {directory.name}"
+                )
+                continue
+
+            partial_corpus = converter.convert(
+                str(directory)
+            )
+
+            corpus.documents.extend(
+                partial_corpus.documents
+            )
+
+            corpus.conversations.extend(
+                partial_corpus.conversations
+            )
 
         print()
 
         print("=" * 60)
         print("Dataset Builder")
         print("-" * 60)
+
         print(
-            f"Conversations : "
-            f"{len(raw_conversations):,}"
+            f"Dataset        : {corpus.dataset_name}"
         )
-        
+
+        print(
+            f"Documents      : "
+            f"{len(corpus.documents):,}"
+        )
+
+        print(
+            f"Conversations  : "
+            f"{len(corpus.conversations):,}"
+        )
+
         print("=" * 60)
 
         print()
 
-        return formatted_conversations
+        return corpus

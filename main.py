@@ -1,45 +1,25 @@
-from utils.tokenizer import Tokenizer
+from tokenizer.tokenizer import create_tokenizer
 
+tokenizer = create_tokenizer()
 
-def main():
+print("Vocab size:", tokenizer.vocab_size)
 
-    tokenizer = Tokenizer(
-        "data/tokenizer/mytokenizer.model"
-    )
+print(
+    tokenizer.user_token,
+    tokenizer.user_token_id
+)
 
-    print("=" * 50)
-    print("HarshaLM Tokenizer")
-    print("=" * 50)
+print(
+    tokenizer.assistant_token,
+    tokenizer.assistant_token_id
+)
 
-    print()
+print(
+    tokenizer.system_token,
+    tokenizer.system_token_id
+)
 
-    sentence = "Hello, I am building HarshaLM."
-
-    tokens = tokenizer.encode(sentence)
-
-    print("Original Sentence:")
-    print(sentence)
-
-    print()
-
-    print("Token IDs:")
-    print(tokens)
-
-    print()
-
-    decoded = tokenizer.decode(tokens)
-
-    print("Decoded Sentence:")
-    print(decoded)
-
-    print()
-
-    print("Vocabulary Size:", tokenizer.vocab_size)
-    print("PAD:", tokenizer.pad_id)
-    print("BOS:", tokenizer.bos_id)
-    print("EOS:", tokenizer.eos_id)
-    print("UNK:", tokenizer.unk_id)
-
-
-if __name__ == "__main__":
-    main()
+print(
+    tokenizer.eos_token,
+    tokenizer.eos_token_id
+)

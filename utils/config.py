@@ -11,7 +11,7 @@ class ModelConfig:
     # Tokenizer
     # ----------------------------
 
-    vocab_size: int = 10000
+    vocab_size: int = 50260
 
     # ----------------------------
     # Input
@@ -71,6 +71,7 @@ class ModelConfig:
     # ----------------------------
 
     dataset_path: str = "datasets"
+    # dataset_path: str = "datasets/dailydialog"
 
     # ----------------------------
     # Miscellaneous
@@ -115,9 +116,8 @@ class ModelConfig:
 
     resume_checkpoint: str = "checkpoints/best_model.pt"
 
-    dataset_type: DatasetType = (
-        DatasetType.PLAIN_TEXT
-    )
+    dataset_type: DatasetType = (DatasetType.PLAIN_TEXT)
+    # dataset_type: DatasetType = (DatasetType.DAILY_DIALOG)
 
     def to_dict(self) -> dict:
         config = asdict(self)

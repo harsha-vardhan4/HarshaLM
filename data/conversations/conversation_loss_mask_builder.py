@@ -1,11 +1,11 @@
-from data.formatted_conversation import (
+from data.conversations.formatted_conversation import (
     FormattedConversation,
 )
 
 from tokenizer.tokenizer import create_tokenizer
 
 
-class LossMaskBuilder:
+class ConversationLossMaskBuilder:
     """
     Builds GPT training tensors.
 

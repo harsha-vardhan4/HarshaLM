@@ -1,9 +1,9 @@
-from data.formatted_conversation import (
+from data.conversations.formatted_conversation import (
     FormattedConversation,
     FormattedMessage,
 )
 
-from data.loss_mask_builder import LossMaskBuilder
+from data.conversations.conversation_loss_mask_builder import ConversationLossMaskBuilder
 
 
 def test_loss_mask_builder():
@@ -37,7 +37,7 @@ def test_loss_mask_builder():
         print(message)
         print()
 
-    builder = LossMaskBuilder()
+    builder = ConversationLossMaskBuilder()
 
     input_ids, labels, loss_mask = builder.build(
         conversation
